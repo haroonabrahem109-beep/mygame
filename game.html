@@ -4,32 +4,92 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-body{margin:0;background:#111;overflow:hidden;}
-canvas{display:block;background:#222;margin:0 auto;}
-#score{position:absolute;top:10px;left:10px;color:white;font-family:sans-serif;font-size:20px;}
+body { margin:0; background:#111; overflow:hidden; }
+canvas { display:block; background:#222; margin:0 auto; }
+#score { position:absolute; top:10px; left:10px; color:white; font-family:sans-serif; font-size:20px; }
 </style>
 </head>
 <body>
 <div id="score">خاڵ: 0</div>
 <canvas id="game" width="360" height="600"></canvas>
 <script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-let player={x:160,y:550,w:40,h:40};
-let obstacles=[];
-let score=0;
-let gameOver=false;
-function spawnObstacle(){obstacles.push({x:Math.random()*(canvas.width-30),y:-30,w:30,h:30,speed:3+Math.random()*3});}
-canvas.addEventListener("touchmove",function(e){
-let touchX=e.touches[0].clientX-canvas.getBoundingClientRect().left;
-player.x=touchX-player.w/2;
+var canvas = document.getElementById("game");
+var ctx = canvas.getContext("2d");
+var player = { x: 160, y: 550, w: 40, h: 40 };
+var obstacles = [];
+var score = 0;
+var gameOver = false;
+
+function spawnObstacle() {
+  obstacles.push({
+    x: Math.random() * (canvas.width - 30),
+    y: -30,
+    w: 30,
+    h: 30,
+    speed: 3 + Math.random() * 3
+  });
+}
+
+canvas.addEventListener("touchmove", function(e) {
+  var touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+  player.x = touchX - player.w / 2;
 });
-function update(){
-if(gameOver)return;
-score++;
-document.getElementById("score").innerText="خاڵ: "+score;
-if(Math.random()<0.03)spawnObstacle();
-obstacles.forEach(function(o){o.y+=o.speed;});
-obstacles=obstacles.filter(function(o){return o.y<canvas.height;});
-obstacles.forEach(function(o){
-if(player.x<o.x+o.w&&player.x+player.w>o.x&&player.y
+
+function update() {
+  if (gameOver) {
+    return;
+  }
+  score = score + 1;
+  document.getElementById("score").innerText = "خاڵ: " + score;
+
+  if (Math.random() < 0.03) {
+    spawnObstacle();
+  }
+
+  for (var i = 0; i < obstacles.length; i++) {
+    obstacles[i].y = obstacles[i].y + obstacles[i].speed;
+  }
+
+  var newObstacles = [];
+  for (var i = 0; i < obstacles.length; i++) {
+    if (obstacles[i].y < canvas.height) {
+      newObstacles.push(obstacles[i]);
+    }
+  }
+  obstacles = newObstacles;
+
+  for (var i = 0; i < obstacles.length; i++) {
+    var o = obstacles[i];
+    if (player.x < o.x + o.w && player.x + player.w > o.x && player.y < o.y + o.h && player.y + player.h > o.y) {
+      gameOver = true;
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "lime";
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+  ctx.fillStyle = "red";
+  for (var i = 0; i < obstacles.length; i++) {
+    ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].w, obstacles[i].h);
+  }
+  if (gameOver) {
+    ctx.fillStyle = "white";
+    ctx.font = "30px sans-serif";
+    ctx.fillText("یاری تەواو بوو!", 60, 300);
+    ctx.font = "20px sans-serif";
+    ctx.fillText("خاڵ: " + score, 140, 340);
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
